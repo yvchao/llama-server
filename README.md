@@ -1,19 +1,25 @@
-# A simple python wrapper of the llama.cpp server
+# A simple wrapper of the llama.cpp server in Python
 
 ## Installation
-- [Llama server ] Execute `bash ./install-llama.sh` to install the [llama.cpp](https://github.com/ggerganov/llama.cpp) server.
-- [Dependencies ] Install python dependencies via `pip install -r requirements.txt`.
+First, clone this repository into a folder llama-server.
+This package can be installed by running `pip install --editable .` inside that folder.
+The LlamaServer class provided by this package requires the "server" executable binary from [llama.cpp](https://github/com/ggerganov/Llama.cpp).
+A bash script *install-llama.sh* is provided to help build the binary with CUDA support.
 
 ## Usage
 
+Currently, the multimodal inference can be performed with the [LLaVa](https://llava-vl.github.io/) model.
+
 ### Create a llama server
 ```python
+from llama_server import LlamaServer
+
 config = {
     "alias": "LLaVA 1.5",
-    "model": "path to model.gguf", # model needs to be converted to formats that are compatible with llama.cpp
-    "multimodal_projector": "path to projector.gguf",
-    "server_exe": "path to llama_server",
-    "system_prompt": "path to system prompt file",
+    "model": "path_to_model.gguf", # model needs to be converted to formats that are compatible with llama.cpp
+    "multimodal_projector": "path_to_projector.gguf",
+    "server_exe": "path_to_llama_server_binary",
+    "system_prompt": "path_to_system_prompt_file",
     "prefix": "User:",
     "suffix": "\nAssistant:",
 }
@@ -47,3 +53,8 @@ prompt = "Please describe concisely the content in the above figure."
 result, image = await llm.query(prompt, "./figures/earth.jpg")
 print(result["answer"].strip())
 ```
+The input is a figure of earth.
+![Earth](./examples/figures/earth.jpg)
+
+Typical model output is given below:
+>The image features a large, close-up view of the Earth from space. It is a beautifully detailed photo that captures the entire planet with its continents and oceans clearly visible. The Earth appears to be in daylight, making it an ideal time for observing the planet's natural beauty.
