@@ -14,9 +14,9 @@ line-length = 120
 target-version = ['py38', 'py39', 'py310']
 
 [tool.isort]
-# known_first_party = ""
+known_first_party = "llama_server"
 profile = "black"
-# src_paths = ["src"]
+src_paths = ["src"]
 
 [tool.pylint]
 disable = "R,C"
@@ -45,6 +45,6 @@ exclude = [
   "venv"
 ]
 ignore = []
-# include = ["src"]
+include = ["src"]
 reportMissingImports = true
 reportMissingTypeStubs = false
