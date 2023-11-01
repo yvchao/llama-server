@@ -12,7 +12,7 @@ set -e  # Stop script on error
 ENV_NAME="llama-cpp"
 PYTHON_VERSION="3.10"
 
-LLAMA_CPP_VERSION="0.2.11"
+LLAMA_CPP_VERSION="b1455"
 CUDA_VERSION="11.4.0"
 
 printf "Target CUDA version: $CUDA_VERSION.\nPlease ensure it is compatible with your GPU driver.\n"
@@ -71,7 +71,7 @@ echo "Verifying CMake installation..."
 cmake --version
 
 echo "Installing llama.cpp..."
-git clone --branch b1455 --depth 1 https://github.com/ggerganov/llama.cpp.git
+git clone --branch $LLAMA_CPP_VERSION --depth 1 https://github.com/ggerganov/llama.cpp.git
 # commit: a2758d08e44ce3624d233af4d23c6843e2e735b5
 
 cd llama.cpp
