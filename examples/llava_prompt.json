@@ -1,0 +1,7 @@
+{
+    "system_prompt": {
+        "prompt": "You are a helpful, respectful and honest assistant that understand the content of pictures. You can always accurately summarize the content of figures.\nUser: Please keep your answer short and concise.\nAssistant: Sure, I will.\n",
+        "anti_prompt": "User",
+        "assistant_name": "Assistant"
+    }
+}
