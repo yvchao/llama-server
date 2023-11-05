@@ -18,7 +18,7 @@ logger.remove()
 logger.add(sys.stderr, level="INFO", format=log_format, colorize=True, backtrace=True, diagnose=True)
 
 
-def scale_image(img: Image.Image | Path | str, base_width=300):
+def scale_image(img: Image.Image | Path | str, base_width=200):
     if isinstance(img, Path | str):
         img = Image.open(img)
     wpercent = base_width / float(img.size[0])
@@ -52,8 +52,6 @@ class LlamaServer:
         self.multimodal_projector = config.get("multimodal_projector", None)
         if self.multimodal_projector is not None:
             self.multimodal_projector = Path(self.multimodal_projector)
-            self.image_width = config.get("image_width", 300)
-            self.image_tag = config.get("image_tag", "mmtag")
             if slots > 1:
                 logger.info("Multimodal inference currently only works with one slot. Slot number is changed to 1.")
                 slots = 1
@@ -89,6 +87,8 @@ class LlamaServer:
             f"{self.context_size}",
             "--batch-size",
             f"{self.batch_size}",
+            "--rope-freq-scale",
+            "1.0",
             "--main-gpu",
             "0",
             "--tensor-split",
@@ -154,24 +154,6 @@ class LlamaServer:
             self.server_process = None
             return returncode
 
-    async def tokenize(self, content: str):
-        api_url = f"{self.server_url}/tokenize"
-        headers = {"Content-Type": "application/json"}
-        data = {"content": content}
-        async with aiohttp.ClientSession() as session:
-            response = await session.post(api_url, json=data, headers=headers)
-            output = await response.json()
-        return output
-
-    async def detokenize(self, tokens: str):
-        api_url = f"{self.server_url}/detokenize"
-        headers = {"Content-Type": "application/json"}
-        data = {"tokens": tokens}
-        async with aiohttp.ClientSession() as session:
-            response = await session.post(api_url, json=data, headers=headers)
-            output = await response.json()
-        return output
-
     async def _query_server(
         self,
         prompt: str,
@@ -204,14 +186,9 @@ class LlamaServer:
 
         if image is not None:
             encoded_string = encode_image(image)
-            img_id = 100
+            img_id = len(encoded_string) % 100
             data["image_data"] = [{"data": encoded_string, "id": img_id}]
-
-            if self.image_tag == "mmtag":
-                image_encode = f"<Image>[img-{img_id}]</Image>"
-            else:
-                image_encode = f"<image>[img-{img_id}]<image>"
-            data["prompt"] = self.prefix + prompt + image_encode + self.suffix
+            data["prompt"] = self.prefix + f"[img-{img_id}]" + prompt + self.suffix
 
         if system_prompt != "":
             data = {"system_prompt": system_prompt}
@@ -221,7 +198,7 @@ class LlamaServer:
                 response = await session.post(api_url, data=json.dumps(data), headers=headers)
                 response.raise_for_status()
                 output = await response.json()
-                return output
+                return {"answer": output["content"], "stopped_limit": output["stopped_limit"], "model": output["model"]}
 
             except aiohttp.ClientConnectorError as e:
                 logger.error(f"Connection error: {e}")
@@ -229,7 +206,7 @@ class LlamaServer:
 
     async def query(self, prompt, image: Image.Image | Path | str = None, **kwargs):
         if image is not None:
-            image = scale_image(image, base_width=self.image_width)
+            image = scale_image(image)
         result = await self._query_server(prompt, image, **kwargs)
         return result, image
 
@@ -249,7 +226,7 @@ class LlamaServer:
             A list of LLM responses.
         """
         if images is not None:
-            images = [scale_image(image, base_width=self.image_width) for image in images]
+            images = [scale_image(image) for image in images]
         else:
             images = [None] * len(prompts)
 
@@ -317,7 +294,7 @@ def test(slots: int = 1):
     logger.info(f"Time elapsed: {end - start:.4f} seconds")
 
     for i, (prompt, response) in enumerate(zip(prompts, responses)):
-        answer = response["content"].strip()
+        answer = response["answer"].strip()
         logger.debug(f"Conversation {i+1}.\nQ: {prompt}\nA: {answer}\n")
 
     server.server_process.terminate()
