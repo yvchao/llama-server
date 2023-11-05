@@ -210,8 +210,8 @@ class LlamaServer:
             if self.image_tag == "mmtag":
                 image_encode = f"<Image>[img-{img_id}]</Image>"
             else:
-                image_encode = f"<image>[img-{img_id}]<image>"
-            data["prompt"] = self.prefix + prompt + image_encode + self.suffix
+                image_encode = f"[img-{img_id}]"
+            data["prompt"] = self.prefix + image_encode + "\n" + prompt + self.suffix
 
         if system_prompt != "":
             data = {"system_prompt": system_prompt}
