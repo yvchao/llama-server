@@ -1,5 +1,5 @@
 diff --git a/examples/server/server.cpp b/examples/server/server.cpp
-index fd75532..0eb6917 100644
+index fd75532..1dcbc7b 100644
 --- a/examples/server/server.cpp
 +++ b/examples/server/server.cpp
 @@ -45,28 +45,27 @@ static bool server_verbose = false;
@@ -1510,7 +1510,7 @@ index fd75532..0eb6917 100644
          {
              if (++i >= argc)
              {
-@@ -2135,20 +2212,18 @@ static void server_params_parse(int argc, char **argv, server_params &sparams,
+@@ -2135,20 +2212,24 @@ static void server_params_parse(int argc, char **argv, server_params &sparams,
                  break;
              }
              std::ifstream file(argv[i]);
@@ -1529,6 +1529,12 @@ index fd75532..0eb6917 100644
 -            );
 +            std::copy(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(),
 +                      std::back_inserter(systm_content));
++
++            auto spc = json::parse(systm_content);
++            LOG_TEE("system prompt file: %s\n", argv[i]);
++            LOG_TEE("system prompt: %s\n", spc.value("prompt", "").c_str());
++            LOG_TEE("anti prompt: %s\n", spc.value("anti_prompt", "").c_str());
++            LOG_TEE("assistant name: %s\n", spc.value("assistant_name", "").c_str());
              llama.process_system_prompt_data(json::parse(systm_content));
          }
 -        else if(arg == "--mmproj")
@@ -1536,7 +1542,7 @@ index fd75532..0eb6917 100644
          {
              if (++i >= argc)
              {
-@@ -2173,16 +2248,10 @@ static void server_params_parse(int argc, char **argv, server_params &sparams,
+@@ -2173,16 +2254,10 @@ static void server_params_parse(int argc, char **argv, server_params &sparams,
      }
  }
  
@@ -1557,7 +1563,7 @@ index fd75532..0eb6917 100644
  
      if (slot->sparams.n_probs > 0)
      {
-@@ -2194,17 +2263,14 @@ static json format_partial_response(
+@@ -2194,17 +2269,14 @@ static json format_partial_response(
  
  static json format_tokenizer_response(const std::vector<llama_token> &tokens)
  {
@@ -1577,7 +1583,7 @@ index fd75532..0eb6917 100644
  static void log_server_request(const httplib::Request &req, const httplib::Response &res)
  {
      LOG_INFO("request", {
-@@ -2224,22 +2290,28 @@ static void log_server_request(const httplib::Request &req, const httplib::Respo
+@@ -2224,22 +2296,28 @@ static void log_server_request(const httplib::Request &req, const httplib::Respo
  
  struct token_translator
  {
@@ -1612,7 +1618,7 @@ index fd75532..0eb6917 100644
      {
          slot->generated_text += translator(cto);
      }
-@@ -2263,8 +2335,7 @@ int main(int argc, char **argv)
+@@ -2263,8 +2341,7 @@ int main(int argc, char **argv)
  
      llama_backend_init(params.numa);
  
@@ -1622,7 +1628,7 @@ index fd75532..0eb6917 100644
  
      LOG_INFO("system info", {
                                  {"n_threads", params.n_threads},
-@@ -2288,252 +2359,242 @@ int main(int argc, char **argv)
+@@ -2288,252 +2365,242 @@ int main(int argc, char **argv)
                               {"Access-Control-Allow-Headers", "content-type"}});
  
      // this is only called if no index.html is found in the public --path
@@ -2069,7 +2075,7 @@ index fd75532..0eb6917 100644
          return 1;
      }
  
-@@ -2549,19 +2610,18 @@ int main(int argc, char **argv)
+@@ -2549,19 +2616,18 @@ int main(int argc, char **argv)
                                        });
  
      // run the HTTP server in a thread - see comment below
