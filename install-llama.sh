@@ -16,7 +16,7 @@ LLAMA_CPP_VERSION="b1488"
 CUDA_VERSION="11.4.0"
 
 printf "Target CUDA version: $CUDA_VERSION.\nPlease ensure it is compatible with your GPU driver.\n"
-read -p "Continue installation? [y/N]: " choice
+read -p "Continue installation? [Y/n]: " choice
 if [[ "$choice" == "n" || "$choice" == "N" ]]; then
   echo "Exiting script."
   exit 1
@@ -74,8 +74,10 @@ echo "Installing llama.cpp..."
 git clone --branch $LLAMA_CPP_VERSION --depth 1 https://github.com/ggerganov/llama.cpp.git
 
 cd llama.cpp
+echo "Apply fix for system prompt..."
 git apply ../system_prompt.patch
 
+echo "Start building server binary..."
 cmake -B build -DLLAMA_CUBLAS=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON
 cmake --build build --config Release -j --target server # we only need the server
 cd ..

@@ -41,6 +41,7 @@ class LlamaServer:
         context_size: int = 4096,
         batch_size: int = 512,
         slots: int = 5,
+        tensor_splits: tuple[float] | None = None,
     ):
         if isinstance(config, dict):
             self.config = config
@@ -53,7 +54,6 @@ class LlamaServer:
         if self.multimodal_projector is not None:
             self.multimodal_projector = Path(self.multimodal_projector)
             self.image_width = config.get("image_width", 300)
-            self.image_tag = config.get("image_tag", "mmtag")
             if slots > 1:
                 logger.info("Multimodal inference currently only works with one slot. Slot number is changed to 1.")
                 slots = 1
@@ -68,6 +68,7 @@ class LlamaServer:
         self.context_size = context_size
         self.batch_size = batch_size
         self.slots = slots
+        self.tensor_splits = tensor_splits
         self.host = config.get("host", "127.0.0.1")
         self.port = config.get("port", 8080)
         self.server_url = f"http://{self.host}:{self.port}"
@@ -91,8 +92,6 @@ class LlamaServer:
             f"{self.batch_size}",
             "--main-gpu",
             "0",
-            "--tensor-split",
-            "5,5",
             "--n-gpu-layers",
             f"{1024}",  # set to a large value
             "--parallel",
@@ -103,6 +102,12 @@ class LlamaServer:
             f"{self.port}",
             "--cont-batching",
         ]
+
+        if self.tensor_splits is not None:
+            self.server_command += [
+                "--tensor-split",
+                ",".join(f"{r}" for r in self.tensor_splits),
+            ]
 
         if self.system_prompt is not None:
             self.server_command += [
@@ -207,10 +212,7 @@ class LlamaServer:
             img_id = 100
             data["image_data"] = [{"data": encoded_string, "id": img_id}]
 
-            if self.image_tag == "mmtag":
-                image_encode = f"<Image>[img-{img_id}]</Image>"
-            else:
-                image_encode = f"[img-{img_id}]"
+            image_encode = f"[img-{img_id}]"
             data["prompt"] = self.prefix + image_encode + "\n" + prompt + self.suffix
 
         if system_prompt != "":
