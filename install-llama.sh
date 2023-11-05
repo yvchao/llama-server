@@ -10,10 +10,11 @@ set -e  # Stop script on error
 
 # Variables
 ENV_NAME="llama-cpp"
-PYTHON_VERSION="3.10"
-
 LLAMA_CPP_VERSION="b1488"
+LLAMA_CPP_PATH="llama.cpp"
 CUDA_VERSION="11.4.0"
+
+PYTHON_VERSION="3.10"
 
 printf "Target CUDA version: $CUDA_VERSION.\nPlease ensure it is compatible with your GPU driver.\n"
 read -p "Continue installation? [Y/n]: " choice
@@ -70,18 +71,21 @@ nvcc --version
 echo "Verifying CMake installation..."
 cmake --version
 
-echo "Installing llama.cpp..."
-git clone --branch $LLAMA_CPP_VERSION --depth 1 https://github.com/ggerganov/llama.cpp.git
-
-cd llama.cpp
-echo "Apply fix for system prompt..."
-git apply ../system_prompt.patch
+if [ ! -d "$LLAMA_CPP_PATH" ]; then
+  echo "Installing llama.cpp..."
+  git clone --branch $LLAMA_CPP_VERSION --depth 1 https://github.com/ggerganov/llama.cpp.git $LLAMA_CPP_PATH
+  echo "Apply fix for system prompt..."
+  cd "$LLAMA_CPP_PATH"
+  git apply ../system_prompt.patch
+else
+  echo "Using exisitng repo..."
+  cd "$LLAMA_CPP_PATH"
+fi
 
 echo "Start building server binary..."
 cmake -B build -DLLAMA_CUBLAS=ON -DLLAMA_AVX=ON -DLLAMA_AVX2=ON
 cmake --build build --config Release -j --target server # we only need the server
 cd ..
-cp "./llama.cpp/build/bin/server" ./llama_server
-yes | rm -r llama.cpp
+cp "./$LLAMA_CPP_PATH/build/bin/server" ./llama_server
 
 echo "Installation complete."
