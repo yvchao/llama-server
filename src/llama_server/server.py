@@ -46,31 +46,33 @@ class LlamaServer:
         if isinstance(config, dict):
             self.config = config
         else:
-            self.config = json.load(Path(config).as_posix())
-        self.model = Path(config["model"])
-        self.server_exe = Path(config["server_exe"])
-        self.alias = config.get("alias", "Llama")
-        self.multimodal_projector = config.get("multimodal_projector", None)
+            with open(Path(config).as_posix()) as f:
+                self.config = json.load(f)
+
+        self.model = Path(self.config["model"])
+        self.server_exe = Path(self.config["server_exe"])
+        self.alias = self.config.get("alias", "Llama")
+        self.multimodal_projector = self.config.get("multimodal_projector", None)
         if self.multimodal_projector is not None:
             self.multimodal_projector = Path(self.multimodal_projector)
-            self.image_width = config.get("image_width", 300)
+            self.image_width = self.config.get("image_width", 300)
             if slots > 1:
                 logger.info("Multimodal inference currently only works with one slot. Slot number is changed to 1.")
                 slots = 1
 
-        self.system_prompt = config.get("system_prompt", None)
+        self.system_prompt = self.config.get("system_prompt", None)
         if self.system_prompt is not None:
             self.system_prompt = Path(self.system_prompt)
 
-        self.prefix = config.get("prefix", "")
-        self.suffix = config.get("suffix", "")
+        self.prefix = self.config.get("prefix", "")
+        self.suffix = self.config.get("suffix", "")
 
         self.context_size = context_size
         self.batch_size = batch_size
         self.slots = slots
         self.tensor_splits = tensor_splits
-        self.host = config.get("host", "127.0.0.1")
-        self.port = config.get("port", 8080)
+        self.host = self.config.get("host", "127.0.0.1")
+        self.port = self.config.get("port", 8080)
         self.server_url = f"http://{self.host}:{self.port}"
         self.server_process = None
 
