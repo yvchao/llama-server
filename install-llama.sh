@@ -10,7 +10,7 @@ set -e  # Stop script on error
 
 # Variables
 ENV_NAME="llama-cpp"
-LLAMA_CPP_VERSION="b1488"
+LLAMA_CPP_VERSION="b1547"
 LLAMA_CPP_PATH="llama.cpp"
 CUDA_VERSION="11.4.0"
 
@@ -76,7 +76,7 @@ if [ ! -d "$LLAMA_CPP_PATH" ]; then
   git clone --branch $LLAMA_CPP_VERSION --depth 1 https://github.com/ggerganov/llama.cpp.git $LLAMA_CPP_PATH
   echo "Apply fix for system prompt..."
   cd "$LLAMA_CPP_PATH"
-  git apply ../system_prompt.patch
+  git apply ../nolog.patch
 else
   echo "Using exisitng repo..."
   cd "$LLAMA_CPP_PATH"

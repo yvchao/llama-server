@@ -1,7 +1,6 @@
 {
-    "system_prompt": {
-        "prompt": "[INST] <<SYS>>\nYou are a helpful, respectful and honest assistant.\n<</SYS>>\nPlease keep your answer short and concise.[/INST]Sure, I will.\n",
-        "anti_prompt": "[INST]",
-        "assistant_name": ""
-    }
+    "prompt": "[INST] <<SYS>>\nYou are a helpful, respectful and honest assistant.\n<</SYS>>\nPlease keep your answer short and concise.[/INST]Sure, I will.\n",
+    "anti_prompt": "[INST]",
+    "assistant_name": ""
+
 }
